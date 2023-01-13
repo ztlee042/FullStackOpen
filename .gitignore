@@ -1,2 +1,5 @@
 working
 .DS_Store
+part3_phonebook/backend/node_modules
+part3_phonebook/frontend/node_modules
+part3/node_modules
