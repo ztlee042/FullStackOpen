@@ -71,6 +71,9 @@ const App = () => {
         setPersons(persons.concat(savedPerson));
         message(`Added ${savedPerson.name}`);
       })
+      .catch(error => {
+        console.log('error', error)
+      })
 
   }
 
