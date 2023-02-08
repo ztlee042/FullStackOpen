@@ -89,14 +89,24 @@ describe('max likes', () => {
     })
 })
 
-describe('most authors', () => {
-    test('most authors', () => {
+describe('most blogs', () => {
+    test('most blogs', () => {
         const expectResult = {
             author: 'Robert C. Martin',
             blogs: 3
         }
-        const result = listHelper.mostBlog(blogs)
-        console.log('result', result)
+        const result = listHelper.mostBlogs(blogs)
+        expect(result).toEqual(expectResult)
+    })
+})
+
+describe('most likes', () => {
+    test('most likes', () => {
+        const expectResult = {
+            author: 'Edsger W. Dijkstra',
+            likes: 17
+        }
+        const result = listHelper.mostLikes(blogs)
         expect(result).toEqual(expectResult)
     })
 })

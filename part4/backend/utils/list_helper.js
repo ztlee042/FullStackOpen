@@ -25,7 +25,7 @@ const favoriteBlog = (blogs) => {
     return favoriteBlog
 }
 
-const mostBlog = (blogs) => {
+const mostBlogs = (blogs) => {
     const authors = lodash.countBy(blogs, 'author')
     const maxCount = Math.max(...Object.values(authors))
     const maxAuthor = lodash.pickBy(authors, (value, key) => {
@@ -40,9 +40,23 @@ const mostBlog = (blogs) => {
     return result
 }
 
+const mostLikes = (blogs) => {
+    const likes = blogs.map(d => d.likes)
+    const maxLike = Math.max(...likes)
+    const favoriteBlogAuthor = blogs.filter(d => d.likes === maxLike)[0].author
+    const filteredBlogs = lodash.filter(blogs, b => b.author === favoriteBlogAuthor)
+    const favTotalLikes = totalLikes(filteredBlogs)
+    const mostLikedAuthor = {
+        author: favoriteBlogAuthor,
+        likes: favTotalLikes
+    }
+    return mostLikedAuthor
+}
+
 module.exports = {
     dummy,
     totalLikes,
     favoriteBlog,
-    mostBlog
+    mostBlogs,
+    mostLikes
 }
