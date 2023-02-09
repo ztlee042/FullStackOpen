@@ -22,6 +22,9 @@ blogsRouter.get('/', async (request, response) => {
 
 blogsRouter.get('/:id', async (request, response) => {
     const blog = await Blog.findById(request.params.id)
+    if (!blog) {
+        response.status(404).json({ error: 'blog id invalid' })
+    }
     response.json(blog)
 })
 

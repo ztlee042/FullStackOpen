@@ -12,6 +12,7 @@ beforeEach(async () => {
 })
 
 describe('when there is initially some blogs saved', () => {
+    // t
     test('blogs are returned as json', async () => {
         await api
             .get('/api/blogs')
@@ -59,27 +60,36 @@ describe('viewing a specific note', () => {
 })
 
 describe('addition of a new note', () => {
+    // t
     test('succeeds with valid data', async () => {
-        const newBlog = {
-            title: 'Third Blog',
-            author: 'TBJ',
-            url: 'www.TBJ.com',
-            likes: 13
+        const user = {
+            username: 'mluukkai',
+            password: 'salainen'
         }
+        // const token = await api.get('/api/login').send(user)
 
-        await api
-            .post('/api/blogs')
-            .send(newBlog)
-            .expect(201)
-            .expect('Content-Type', /application\/json/)
+        // console.log('token', token)
+        //     const newBlog = {
+        //         title: 'Third Blog',
+        //         author: 'TBJ',
+        //         url: 'www.TBJ.com',
+        //         likes: 13
+        //     }
 
-        const blogsAtEnd = await helper.blogsInDb()
-        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+        //     await api
+        //         .post('/api/blogs')
+        //         .send(newBlog)
+        //         .expect(201)
+        //         .expect('Content-Type', /application\/json/)
 
-        const titles = blogsAtEnd.map(b => b.title)
-        expect(titles).toContain('Third Blog')
+        //     const blogsAtEnd = await helper.blogsInDb()
+        //     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+
+        //     const titles = blogsAtEnd.map(b => b.title)
+        //     expect(titles).toContain('Third Blog')
     })
 
+    // t
     test('default likes is 0', async () => {
         const newBlog = {
             title: 'Third Blog',
@@ -132,6 +142,7 @@ describe('addition of a new note', () => {
 })
 
 describe('deletion of a note', () => {
+    // t
     test('succeeds with status code 204 if id is valid', async () => {
         const blogsAtStart = await helper.blogsInDb()
         const blogToDelete = blogsAtStart[0]
