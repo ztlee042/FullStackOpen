@@ -56,6 +56,22 @@ test('a valid blog can be added', async () => {
     expect(titles).toContain('Third Blog')
 })
 
+test('default likes is 0', async () => {
+    const newBlog = {
+        title: 'Third Blog',
+        author: 'TBJ',
+        url: 'www.TBJ.com'
+    }
+
+    const savedBlog = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    expect(savedBlog.body.likes).toEqual(0)
+})
+
 test('blog without title is not added', async () => {
     const newBlog = {
         author: 'HJS',

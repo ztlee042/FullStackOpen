@@ -37,9 +37,12 @@ blogsRouter.put('/:id', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-    const { title, author, url, likes } = request.body
+    let { title, author, url, likes } = request.body
     if (title === undefined) {
         return response.status(400).json({ error: 'title missing' })
+    }
+    if (likes === undefined) {
+        likes = 0
     }
     const blog = new Blog({
         title: title,
