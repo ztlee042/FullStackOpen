@@ -8,132 +8,180 @@ const Blog = require('../models/blog')
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    console.log('cleared')
-
-    for (let blog of helper.initialBlogs) {
-        let blogObject = new Blog(blog)
-        await blogObject.save()
-        console.log('saved!')
-    }
+    await Blog.insertMany(helper.initialBlogs)
 })
 
-test('blogs are returned as json', async () => {
-    await api
-        .get('/api/blogs')
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
+describe('when there is initially some blogs saved', () => {
+    test('blogs are returned as json', async () => {
+        await api
+            .get('/api/blogs')
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+    })
+    test('all notes are returned', async () => {
+        const response = await api.get('/api/blogs')
+        expect(response.body).toHaveLength(helper.initialBlogs.length)
+    })
+    test('a specific blog is within the returned blogs', async () => {
+        const response = await api.get('/api/blogs')
+        const titles = response.body.map(b => b.title)
+        expect(titles).toContain('Second Blog')
+    })
 })
 
-test('there are two blogs', async () => {
-    const response = await api.get('/api/blogs')
-    expect(response.body).toHaveLength(helper.initialBlogs.length)
+describe('viewing a specific note', () => {
+    test('succeeds with a valid id', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+
+        const blogToView = blogsAtStart[0]
+
+        const resultBlog = await api
+            .get(`/api/blogs/${blogToView.id}`)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+        expect(resultBlog.body).toEqual(blogToView)
+    })
+
+    test('fails with statuscode 404 if note does not exist', async () => {
+        const validNoneExistId = await helper.nonExistingId()
+        await api
+            .get(`/api/blogs/${validNoneExistId}`)
+            .expect(404)
+    })
+
+    test('fails with statuscode 400 if id is not valid', async () => {
+        const invalidId = '5a3d5da59070081a82a3445'
+        await api
+            .get(`/api/blogs/${invalidId}`)
+            .expect(400)
+    })
 })
 
-test('a specific blog is within the returned blogs', async () => {
-    const response = await api.get('/api/blogs')
-    const titles = response.body.map(b => b.title)
-    expect(titles).toContain('Second Blog')
+describe('addition of a new note', () => {
+    test('succeeds with valid data', async () => {
+        const newBlog = {
+            title: 'Third Blog',
+            author: 'TBJ',
+            url: 'www.TBJ.com',
+            likes: 13
+        }
+
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+
+        const titles = blogsAtEnd.map(b => b.title)
+        expect(titles).toContain('Third Blog')
+    })
+
+    test('default likes is 0', async () => {
+        const newBlog = {
+            title: 'Third Blog',
+            author: 'TBJ',
+            url: 'www.TBJ.com'
+        }
+
+        const savedBlog = await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+        expect(savedBlog.body.likes).toEqual(0)
+    })
+
+    test('blog without title is not added', async () => {
+        const newBlog = {
+            author: 'HJS',
+            url: 'www.HJS.com',
+            likes: 6
+        }
+
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(400)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    })
+
+    test('blog without url is not added', async () => {
+        const newBlog = {
+            title: 'Third Blog',
+            author: 'HJS',
+            likes: 6
+        }
+
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(400)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    })
 })
 
-test('a valid blog can be added', async () => {
-    const newBlog = {
-        title: 'Third Blog',
-        author: 'TBJ',
-        url: 'www.TBJ.com',
-        likes: 13
-    }
+describe('deletion of a note', () => {
+    test('succeeds with status code 204 if id is valid', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToDelete = blogsAtStart[0]
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-        .expect('Content-Type', /application\/json/)
+        await api
+            .delete(`/api/blogs/${blogToDelete.id}`)
+            .expect(204)
 
-    const blogsAtEnd = await helper.blogsInDb()
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+        const blogsAtEnd = await helper.blogsInDb()
 
-    const titles = blogsAtEnd.map(b => b.title)
-    expect(titles).toContain('Third Blog')
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+
+        const titles = blogsAtEnd.map(b => b.titles)
+
+        expect(titles).not.toContain(blogToDelete.title)
+    })
 })
 
-test('default likes is 0', async () => {
-    const newBlog = {
-        title: 'Third Blog',
-        author: 'TBJ',
-        url: 'www.TBJ.com'
-    }
+describe('update of a note', () => {
+    test('succeeds with updated likes', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToUpdate = blogsAtStart[0]
 
-    const savedBlog = await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-        .expect('Content-Type', /application\/json/)
+        const likesAtStart = blogToUpdate.likes
+        console.log('likesAtStart', likesAtStart)
+        const newLikes = likesAtStart + 2
 
-    expect(savedBlog.body.likes).toEqual(0)
-})
+        const newBlog = {
+            title: blogToUpdate.title,
+            author: blogToUpdate.author,
+            url: blogToUpdate.url,
+            likes: newLikes
+        }
 
-test('blog without title is not added', async () => {
-    const newBlog = {
-        author: 'HJS',
-        url: 'www.HJS.com',
-        likes: 6
-    }
+        const response = await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlog)
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
+        expect(response.body.likes).toBe(newLikes)
 
-    const blogsAtEnd = await helper.blogsInDb()
+        // await api
+        //     .delete(`/api/blogs/${blogToDelete.id}`)
+        //     .expect(204)
 
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
-})
+        // const blogsAtEnd = await helper.blogsInDb()
 
-test('blog without url is not added', async () => {
-    const newBlog = {
-        title: 'Third Blog',
-        author: 'HJS',
-        likes: 6
-    }
+        // expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
+        // const titles = blogsAtEnd.map(b => b.titles)
 
-    const blogsAtEnd = await helper.blogsInDb()
-
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
-})
-
-test('a specific blog can be viewed', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-
-    const blogToView = blogsAtStart[0]
-
-    const resultBlog = await api
-        .get(`/api/blogs/${blogToView.id}`)
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-
-    expect(resultBlog.body).toEqual(blogToView)
-})
-
-test('a specific blog can be deleted', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const blogToDelete = blogsAtStart[0]
-
-    await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
-        .expect(204)
-
-    const blogsAtEnd = await helper.blogsInDb()
-
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
-
-    const titles = blogsAtEnd.map(b => b.titles)
-
-    expect(titles).not.toContain(blogToDelete.title)
+        // expect(titles).not.toContain(blogToDelete.title)
+    })
 })
 
 // 4.9
