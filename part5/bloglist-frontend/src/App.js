@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login';
+import Message from './components/Message';
+import ErrorMessage from './components/ErrorMessage';
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -11,6 +13,8 @@ const App = () => {
   const [title, setTitle] = useState([])
   const [author, setAuthor] = useState([])
   const [url, setUrl] = useState([])
+  const [message, setMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -58,11 +62,12 @@ const App = () => {
     }
     try {
       await blogService.createNew(newObject)
+      setMessageContent(`added a new blog: ${title} By ${author}`)
       setTitle('')
       setAuthor('')
       setUrl('')
     } catch (exception) {
-      // setErrorMessage('Wrong credentials')
+      setErrorMessageContent('Wrong credentials')
       // setTimeout(() => {
       // setErrorMessage(null)
       // }, 5000);
@@ -133,10 +138,26 @@ const App = () => {
     setUser('')
   }
 
+  const setMessageContent = (content) => {
+    setMessage(content)
+    setTimeout(() => {
+      setMessage(null)
+    }, 3000)
+  }
+
+  const setErrorMessageContent = (content) => {
+    setErrorMessage(content)
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 3000)
+  }
+
 
 
   return (
     <div>
+      <Message message={message} />
+      <ErrorMessage errorMessage={errorMessage} />
       {!user && loginForm()}
       {user && <div>
         <p>{user.name} is online <button onClick={() => logOutUser()}>logout</button></p>
