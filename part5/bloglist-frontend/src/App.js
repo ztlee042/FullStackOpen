@@ -8,12 +8,15 @@ const App = () => {
   const [username, setUserName] = useState([])
   const [password, setPassword] = useState([])
   const [user, setUser] = useState(null)
+  const [title, setTitle] = useState([])
+  const [author, setAuthor] = useState([])
+  const [url, setUrl] = useState([])
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs(blogs)
     )
-  }, [])
+  }, []) // 如何在创建新 blog 后自动更新？
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
@@ -21,7 +24,7 @@ const App = () => {
       console.log('storage?')
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
-      // blogService.setToken(user.token)
+      blogService.setToken(user.token)
     }
   }, [])
 
@@ -34,9 +37,30 @@ const App = () => {
       window.localStorage.setItem(
         'loggedBlogAppUser', JSON.stringify(user)
       )
+      blogService.setToken(user.token)
       setUser(user)
       setUserName('')
       setPassword('')
+    } catch (exception) {
+      // setErrorMessage('Wrong credentials')
+      // setTimeout(() => {
+      // setErrorMessage(null)
+      // }, 5000);
+    }
+  }
+
+  const createNewBlog = async (event) => {
+    event.preventDefault()
+    const newObject = {
+      title: title,
+      author: author,
+      url: url
+    }
+    try {
+      await blogService.createNew(newObject)
+      setTitle('')
+      setAuthor('')
+      setUrl('')
     } catch (exception) {
       // setErrorMessage('Wrong credentials')
       // setTimeout(() => {
@@ -69,16 +93,39 @@ const App = () => {
     </form>
   )
 
-  const blogForm = () => {
+  const blogForm = () => (
     // <form onSubmit={addBlog}>
-    <form>
-      <input
-      // value={newNote}
-      // onChange={handleNoteChange}
-      />
-      <button type="submit">save</button>
+    <form onSubmit={createNewBlog}>
+      <div>
+        title:
+        <input
+          type="text"
+          value={title}
+          name="Title"
+          onChange={({ target }) => setTitle(target.value)}
+        />
+      </div>
+      <div>
+        author:
+        <input
+          type="text"
+          value={author}
+          name="Author"
+          onChange={({ target }) => setAuthor(target.value)}
+        />
+      </div>
+      <div>
+        url:
+        <input
+          type="text"
+          value={url}
+          name="Url"
+          onChange={({ target }) => setUrl(target.value)}
+        />
+      </div>
+      <button type="submit">create</button>
     </form>
-  }
+  )
 
   const logOutUser = () => {
     console.log('clicked!')
