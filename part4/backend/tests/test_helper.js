@@ -1,3 +1,7 @@
+const supertest = require('supertest')
+const bcrypt = require('bcrypt')
+const app = require('../app')
+const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
 
@@ -34,8 +38,14 @@ const usersInDb = async () => {
     return users.map(u => u.toJSON())
 }
 
+const nonExistingToken = async (token) => {
+    let invalidToken = token.split('')
+    invalidToken[3] = 'h'
+    return invalidToken.join('')
+}
+
 
 
 module.exports = {
-    initialBlogs, blogsInDb, nonExistingId, usersInDb
+    initialBlogs, blogsInDb, nonExistingId, usersInDb, nonExistingToken
 }
