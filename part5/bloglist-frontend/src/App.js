@@ -1,131 +1,131 @@
-import { useState, useEffect, useRef } from "react"
-import loginService from './services/login';
-import blogService from "./services/blogs";
-import Message from "./components/Message";
-import ErrorMessage from "./components/ErrorMessage";
-import Blog from "./components/Blog";
+import { useState, useEffect, useRef } from 'react'
+import loginService from './services/login'
+import blogService from './services/blogs'
+import Message from './components/Message'
+import ErrorMessage from './components/ErrorMessage'
+import Blog from './components/Blog'
 import LogInForm from './components/LoginForm'
-import Togglable from "./components/Togglable";
-import BlogForm from "./components/BlogForm";
+import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 
 
 
 const App = () => {
 
-    const [blogs, setBlogs] = useState([])
-    const [userLogIn, setUserLogIn] = useState(null)
-    const [message, setMessage] = useState(null)
-    const [errorMessage, setErrorMessage] = useState(null)
+  const [blogs, setBlogs] = useState([])
+  const [userLogIn, setUserLogIn] = useState(null)
+  const [message, setMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
-    const blogFormRef = useRef()
+  const blogFormRef = useRef()
 
-    useEffect(() => {
-        blogService.getAll().then(blogs =>
-            setBlogs(blogs)
-        )
-    }, [])
-
-    useEffect(() => {
-        const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-        if (loggedUserJSON) {
-            const user = JSON.parse(loggedUserJSON)
-            setUserLogIn(user)
-            blogService.setToken(user.token)
-            // blogService.setToken(user.token)
-        }
-    }, [])
-
-    //#region message
-    const setMessageContent = (content) => {
-        setMessage(content)
-        setTimeout(() => {
-            setMessage(null)
-        }, 3000)
-    }
-
-    const setErrorMessageContent = (content) => {
-        setErrorMessage(content)
-        setTimeout(() => {
-            setErrorMessage(null)
-        }, 3000)
-    }
-    //#endregion message
-
-    //#region log in
-    const loginForm = () => (
-        <Togglable buttonLabel="log in">
-            <LogInForm
-                userLogin={userLogin}
-            />
-        </Togglable>
+  useEffect(() => {
+    blogService.getAll().then(blogs =>
+      setBlogs(blogs)
     )
+  }, [])
 
-    const userLogin = async (userInfo) => {
-        try {
-            const user = await loginService.login(userInfo)
-            window.localStorage.setItem(
-                'loggedBlogAppUser', JSON.stringify(user)
-            )
-            setMessageContent(`${user.name} logged in`)
-            setUserLogIn(user)
-            blogService.setToken(user.token)
-        } catch (error) {
-            setErrorMessageContent('Error')
-        }
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUserLogIn(user)
+      blogService.setToken(user.token)
+      // blogService.setToken(user.token)
     }
-    //#endregion log in
+  }, [])
 
-    //#region blog form
-    const blogForm = () => (
-        <>
-            <p>{userLogIn.name} logged in <button>log out</button></p>
-            <Togglable buttonLabel="create" ref={blogFormRef}>
-                <BlogForm createNewBlog={createNewBlog}
-                />
-            </Togglable>
-        </>
+  //#region message
+  const setMessageContent = (content) => {
+    setMessage(content)
+    setTimeout(() => {
+      setMessage(null)
+    }, 3000)
+  }
 
-    )
+  const setErrorMessageContent = (content) => {
+    setErrorMessage(content)
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 3000)
+  }
+  //#endregion message
 
-    const createNewBlog = async (newBlogObject) => {
-        try {
-            blogFormRef.current.toggleVisibility()
-            const addedBlog = await blogService.createNew(newBlogObject)
-            setMessageContent(`Added a new blog post: ${newBlogObject.title} by ${newBlogObject.author}`)
-            setBlogs(blogs.concat(addedBlog))
-        } catch (error) {
-            setErrorMessageContent('Error!')
-        }
+  //#region log in
+  const loginForm = () => (
+    <Togglable buttonLabel='log in'>
+      <LogInForm
+        userLogin={userLogin}
+      />
+    </Togglable>
+  )
+
+  const userLogin = async (userInfo) => {
+    try {
+      const user = await loginService.login(userInfo)
+      window.localStorage.setItem(
+        'loggedBlogAppUser', JSON.stringify(user)
+      )
+      setMessageContent(`${user.name} logged in`)
+      setUserLogIn(user)
+      blogService.setToken(user.token)
+    } catch (error) {
+      setErrorMessageContent('Error')
     }
+  }
+  //#endregion log in
 
-    //#endregion blog form
+  //#region blog form
+  const blogForm = () => (
+    <>
+      <p>{userLogIn.name} logged in <button>log out</button></p>
+      <Togglable buttonLabel='create' ref={blogFormRef}>
+        <BlogForm createNewBlog={createNewBlog}
+        />
+      </Togglable>
+    </>
 
-    const blogList = () => {
-        // to preserve 'only the user who create the blog can delete/update the blog'
-        const filteredBlogs = blogs.filter(b => b.user.id === userLogIn.id)
-        const sortedBlogs = filteredBlogs.sort((a, b) => a.likes < b.likes ? 1 : -1)
-        return (
-            <>
-                <h2> Blog List</h2>
-                {sortedBlogs.map((blog, i) =>
-                    <Blog key={blog.id} blog={blog} blogId={blog.id} />
-                )}
-            </>
-        )
+  )
+
+  const createNewBlog = async (newBlogObject) => {
+    try {
+      blogFormRef.current.toggleVisibility()
+      const addedBlog = await blogService.createNew(newBlogObject)
+      setMessageContent(`Added a new blog post: ${newBlogObject.title} by ${newBlogObject.author}`)
+      setBlogs(blogs.concat(addedBlog))
+    } catch (error) {
+      setErrorMessageContent('Error!')
     }
+  }
 
+  //#endregion blog form
+
+  const blogList = () => {
+    // to preserve 'only the user who create the blog can delete/update the blog'
+    const filteredBlogs = blogs.filter(b => b.user.id === userLogIn.id)
+    const sortedBlogs = filteredBlogs.sort((a, b) => a.likes < b.likes ? 1 : -1)
     return (
-        <>
-            <h1> Blog App</h1>
-            <Message message={message} />
-            <ErrorMessage message={errorMessage} />
-            {userLogIn ? <div>
-                {blogForm()}
-                {blogList()}
-            </div> : loginForm()}
-        </>
-
+      <>
+        <h2> Blog List</h2>
+        {sortedBlogs.map(blog =>
+          <Blog key={blog.id} blog={blog} blogId={blog.id} />
+        )}
+      </>
     )
+  }
+
+  return (
+    <>
+      <h1> Blog App</h1>
+      <Message message={message} />
+      <ErrorMessage message={errorMessage} />
+      {userLogIn ? <div>
+        {blogForm()}
+        {blogList()}
+      </div> : loginForm()}
+    </>
+
+  )
 
 }
 

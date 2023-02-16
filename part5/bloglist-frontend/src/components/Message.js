@@ -1,12 +1,12 @@
 const Message = ({ message }) => {
-    if (message === null) {
-        return null
-    }
+  if (message === null) {
+    return null
+  }
 
-    return (
-        <div className='message'>
-            {message}
-        </div>
-    )
+  return (
+    <div className='message'>
+      {message}
+    </div>
+  )
 }
-export default Message;
+export default Message

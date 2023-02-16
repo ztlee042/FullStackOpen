@@ -1,5 +1,5 @@
-import { useState } from "react"
-import blogService from "../services/blogs"
+import { useState } from 'react'
+import blogService from '../services/blogs'
 
 const Blog = ({ blogId, blog }) => {
 
