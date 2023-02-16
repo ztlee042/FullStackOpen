@@ -101,12 +101,13 @@ const App = () => {
     //#endregion blog form
 
     const blogList = () => {
-        blogs.sort((a, b) => a.likes < b.likes ? 1 : -1)
-        // console.log('sortedBlogs', sortedBlogs)
+        // to preserve 'only the user who create the blog can delete/update the blog'
+        const filteredBlogs = blogs.filter(b => b.user.id === userLogIn.id)
+        const sortedBlogs = filteredBlogs.sort((a, b) => a.likes < b.likes ? 1 : -1)
         return (
             <>
                 <h2> Blog List</h2>
-                {blogs.map((blog, i) =>
+                {sortedBlogs.map((blog, i) =>
                     <Blog key={blog.id} blog={blog} blogId={blog.id} />
                 )}
             </>
