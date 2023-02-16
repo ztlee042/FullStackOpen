@@ -1,176 +1,128 @@
-import { useState, useEffect } from 'react'
-import Blog from './components/Blog'
-import blogService from './services/blogs'
+import { useState, useEffect, useRef } from "react"
 import loginService from './services/login';
-import Message from './components/Message';
-import ErrorMessage from './components/ErrorMessage';
+import blogService from "./services/blogs";
+import Message from "./components/Message";
+import ErrorMessage from "./components/ErrorMessage";
+import Blog from "./components/Blog";
+import LogInForm from './components/LoginForm'
+import Togglable from "./components/Togglable";
+import BlogForm from "./components/BlogForm";
+
+
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
-  const [username, setUserName] = useState([])
-  const [password, setPassword] = useState([])
-  const [user, setUser] = useState(null)
-  const [title, setTitle] = useState([])
-  const [author, setAuthor] = useState([])
-  const [url, setUrl] = useState([])
-  const [message, setMessage] = useState(null)
-  const [errorMessage, setErrorMessage] = useState(null)
 
-  useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs(blogs)
+    const [blogs, setBlogs] = useState([])
+    const [userLogIn, setUserLogIn] = useState(null)
+    const [message, setMessage] = useState(null)
+    const [errorMessage, setErrorMessage] = useState(null)
+
+    const blogFormRef = useRef()
+
+    useEffect(() => {
+        blogService.getAll().then(blogs =>
+            setBlogs(blogs)
+        )
+    }, [])
+
+    useEffect(() => {
+        const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
+        if (loggedUserJSON) {
+            const user = JSON.parse(loggedUserJSON)
+            setUserLogIn(user)
+            // blogService.setToken(user.token)
+        }
+    }, [])
+
+    //#region message
+    const setMessageContent = (content) => {
+        setMessage(content)
+        setTimeout(() => {
+            setMessage(null)
+        }, 3000)
+    }
+
+    const setErrorMessageContent = (content) => {
+        setErrorMessage(content)
+        setTimeout(() => {
+            setErrorMessage(null)
+        }, 3000)
+    }
+    //#endregion message
+
+    //#region log in
+    const loginForm = () => (
+        <Togglable buttonLabel="log in">
+            <LogInForm
+                userLogin={userLogin}
+            />
+        </Togglable>
     )
-  }, []) // 如何在创建新 blog 后自动更新？
 
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-    if (loggedUserJSON) {
-      console.log('storage?')
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
+    const userLogin = async (userInfo) => {
+        try {
+            const user = await loginService.login(userInfo)
+            window.localStorage.setItem(
+                'loggedBlogAppUser', JSON.stringify(user)
+            )
+            setMessageContent(`${user.name} logged in`)
+            setUserLogIn(user)
+            blogService.setToken(user.token)
+        } catch (error) {
+            setErrorMessageContent('Error')
+        }
     }
-  }, [])
+    //#endregion log in
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    try {
-      const user = await loginService.login({
-        username, password
-      })
-      window.localStorage.setItem(
-        'loggedBlogAppUser', JSON.stringify(user)
-      )
-      blogService.setToken(user.token)
-      setUser(user)
-      setUserName('')
-      setPassword('')
-    } catch (exception) {
-      // setErrorMessage('Wrong credentials')
-      // setTimeout(() => {
-      // setErrorMessage(null)
-      // }, 5000);
+    //#region blog form
+    const blogForm = () => (
+        <>
+            <p>{userLogIn.name} logged in <button>log out</button></p> 
+            <Togglable buttonLabel="create" ref={blogFormRef}>
+                <BlogForm createNewBlog={createNewBlog}
+                />
+            </Togglable>
+        </>
+
+    )
+
+    const createNewBlog = async (newBlogObject) => {
+        try {
+            blogFormRef.current.toggleVisibility()
+            const addedBlog = await blogService.createNew(newBlogObject)
+            setMessageContent(`Added a new blog post: ${newBlogObject.title} by ${newBlogObject.author}`)
+            setBlogs(blogs.concat(addedBlog))
+        } catch (error) {
+            setErrorMessageContent('Error!')
+        }
     }
-  }
 
-  const createNewBlog = async (event) => {
-    event.preventDefault()
-    const newObject = {
-      title: title,
-      author: author,
-      url: url
-    }
-    try {
-      await blogService.createNew(newObject)
-      setMessageContent(`added a new blog: ${title} By ${author}`)
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-    } catch (exception) {
-      setErrorMessageContent('Wrong credentials')
-      // setTimeout(() => {
-      // setErrorMessage(null)
-      // }, 5000);
-    }
-  }
+    //#endregion blog form
 
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        username
-        <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUserName(target.value)}
-        />
-      </div>
-      <div>
-        password
-        <input
-          type="text"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type="submit">login</button>
-    </form>
-  )
+    const blogList = () => (
+        <>
+            <h2> Blog List</h2>
+            {blogs.map(blog =>
+                <Blog key={blog.id} blog={blog} />
+            )}
+        </>
+    )
 
-  const blogForm = () => (
-    // <form onSubmit={addBlog}>
-    <form onSubmit={createNewBlog}>
-      <div>
-        title:
-        <input
-          type="text"
-          value={title}
-          name="Title"
-          onChange={({ target }) => setTitle(target.value)}
-        />
-      </div>
-      <div>
-        author:
-        <input
-          type="text"
-          value={author}
-          name="Author"
-          onChange={({ target }) => setAuthor(target.value)}
-        />
-      </div>
-      <div>
-        url:
-        <input
-          type="text"
-          value={url}
-          name="Url"
-          onChange={({ target }) => setUrl(target.value)}
-        />
-      </div>
-      <button type="submit">create</button>
-    </form>
-  )
+    return (
+        <>
+            <h1> Blog App</h1>
+            <Message message={message} />
+            <ErrorMessage message={errorMessage} />
+            {userLogIn ? <div>
+                {blogForm()}
+                {blogList()}
+            </div> : loginForm()}
+        </>
 
-  const logOutUser = () => {
-    console.log('clicked!')
-    window.localStorage.removeItem('loggedBlogAppUser')
-    setUser('')
-  }
+    )
 
-  const setMessageContent = (content) => {
-    setMessage(content)
-    setTimeout(() => {
-      setMessage(null)
-    }, 3000)
-  }
-
-  const setErrorMessageContent = (content) => {
-    setErrorMessage(content)
-    setTimeout(() => {
-      setErrorMessage(null)
-    }, 3000)
-  }
-
-
-
-  return (
-    <div>
-      <Message message={message} />
-      <ErrorMessage errorMessage={errorMessage} />
-      {!user && loginForm()}
-      {user && <div>
-        <p>{user.name} is online <button onClick={() => logOutUser()}>logout</button></p>
-        {blogForm()}
-        <h2>blogs</h2>
-        {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} />
-        )}
-      </div>
-      }
-
-    </div>
-  )
 }
+
+
 
 export default App

@@ -12,7 +12,7 @@ h1 {
     margin-bottom: 10px;
 }
 
-.message {
+.error {
     color: red;
     background: lightgrey;
     font-size: 20px;
