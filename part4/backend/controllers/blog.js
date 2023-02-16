@@ -49,22 +49,35 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
+
     const { title, author, url, likes } = request.body
     if (!request.user) {
+        console.log('to this step????')
         return response.status(401).json({ error: 'token invalid' })
     }
-    const blog = await Blog.findById(request.params.id)
-    const user = blog.user.toString()
-    if (user === request.user) {
-        const updatedBlog = await Blog.findByIdAndUpdate(
-            request.params.id,
-            { title, author, url, likes },
-            { new: true, runValidators: true, context: 'query' }
-        )
-        response.json(updatedBlog)
-    } else {
-        response.status(401).json({ error: 'token invalid' })
-    }
+    // --if only the logged in user can delete the blogs he created--
+    // const blog = await Blog.findById(request.params.id)
+    // const user = blog.user.toString()
+    // console.log('request.user', request.user)
+    // console.log('user', user)
+    // if (user === request.user) {
+    //     const updatedBlog = await Blog.findByIdAndUpdate(
+    //         request.params.id,
+    //         { title, author, url, likes },
+    //         { new: true, runValidators: true, context: 'query' }
+    //     )
+    //     response.json(updatedBlog)
+    // } else {
+    //     response.status(401).json({ error: 'token invalid' })
+    // }
+
+    // --any logged in user can edit likes--
+    const updatedBlog = await Blog.findByIdAndUpdate(
+        request.params.id,
+        { title, author, url, likes },
+        { new: true, runValidators: true, context: 'query' }
+    )
+    response.json(updatedBlog)
 })
 
 blogsRouter.post('/', async (request, response) => {

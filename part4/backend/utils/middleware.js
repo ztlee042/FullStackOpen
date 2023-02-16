@@ -38,8 +38,10 @@ const tokenExtractor = (request, response, next) => {
 
 const userExtractor = (request, response, next) => {
     const authorization = request.get('authorization')
+    console.log('authorization', authorization)
     if (authorization && authorization.startsWith('Bearer ')) {
         const token = authorization.replace('Bearer ', '')
+        console.log('token', token)
         const decodedToken = jwt.verify(token, process.env.SECRET)
         request.user = decodedToken.id
     }

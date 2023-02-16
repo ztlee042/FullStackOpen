@@ -30,6 +30,7 @@ const App = () => {
         if (loggedUserJSON) {
             const user = JSON.parse(loggedUserJSON)
             setUserLogIn(user)
+            blogService.setToken(user.token)
             // blogService.setToken(user.token)
         }
     }, [])
@@ -77,7 +78,7 @@ const App = () => {
     //#region blog form
     const blogForm = () => (
         <>
-            <p>{userLogIn.name} logged in <button>log out</button></p> 
+            <p>{userLogIn.name} logged in <button>log out</button></p>
             <Togglable buttonLabel="create" ref={blogFormRef}>
                 <BlogForm createNewBlog={createNewBlog}
                 />
@@ -99,14 +100,18 @@ const App = () => {
 
     //#endregion blog form
 
-    const blogList = () => (
-        <>
-            <h2> Blog List</h2>
-            {blogs.map(blog =>
-                <Blog key={blog.id} blog={blog} />
-            )}
-        </>
-    )
+    const blogList = () => {
+        blogs.sort((a, b) => a.likes < b.likes ? 1 : -1)
+        // console.log('sortedBlogs', sortedBlogs)
+        return (
+            <>
+                <h2> Blog List</h2>
+                {blogs.map((blog, i) =>
+                    <Blog key={blog.id} blog={blog} blogId={blog.id} />
+                )}
+            </>
+        )
+    }
 
     return (
         <>
