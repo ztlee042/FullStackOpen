@@ -35,7 +35,7 @@ export const addAnecdote = (content) => {
   }
 }
 
-const initialState = anecdotesAtStart.map(asObject)
+const initialState = anecdotesAtStart.map(asObject).sort((a, b) => a.votes - b.votes)
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -48,13 +48,13 @@ const reducer = (state = initialState, action) => {
       }
       return state.map(anecdote =>
         anecdote.id !== id ? anecdote : changedAnecdote
-      )
+      ).sort((a, b) => a.votes - b.votes)
     case 'ADD':
       const content = action.payload.content
       const newAnecdote = asObject(content)
       return state.concat(newAnecdote)
     default:
-      return state
+      return state.sort((a, b) => a.votes - b.votes)
   }
 }
 
