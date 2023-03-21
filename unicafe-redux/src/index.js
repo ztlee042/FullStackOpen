@@ -6,16 +6,24 @@ import counterReducer from './reducer'
 
 const store = createStore(counterReducer)
 
+const addGood = () => {
+  return {
+    type: 'GOOD'
+  }
+}
+
+const goodButtonHandler = (e) => {
+  e.preventDefault()
+  store.dispatch(addGood())
+}
+
+
+
 const App = () => {
-  // const good = () => {
-  //   store.dispatch({
-  //     type: 'GOOD'
-  //   })
-  // }
 
   return (
     <div>
-      <button onClick={e => store.dispatch({ type: 'GOOD' })}>good</button>
+      <button onClick={goodButtonHandler}>good</button>
       <button onClick={e => store.dispatch({ type: 'OK' })}>ok</button>
       <button onClick={e => store.dispatch({ type: 'BAD' })}>bad</button>
       <button onClick={e => store.dispatch({ type: 'ZERO' })}>reset stats</button>
