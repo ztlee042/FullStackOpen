@@ -2,7 +2,7 @@ import { useDispatch } from "react-redux"
 import { addAnecdote } from "../reducers/anecdoteReducer"
 
 const AnecdoteForm = () => {
-  const dispatch = useDispatch()
+const dispatch = useDispatch()
 
   const addNote = (event) => {
     event.preventDefault()
