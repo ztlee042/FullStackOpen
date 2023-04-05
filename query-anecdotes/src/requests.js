@@ -13,7 +13,9 @@ export const createAnecdote = async newAnecdote => {
 }
 
 export const updateVote = async (anecdote) => {
+  // update current votes to current + 1
   const updated = { ...anecdote, votes: anecdote.votes + 1 }
+  // use anecdote.id to update the correct object
   const response = await axios.put(baseUrl + `/${anecdote.id}`, updated)
   return response.data
 }
