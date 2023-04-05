@@ -3,13 +3,14 @@ import { useMutation, useQueryClient } from "react-query"
 
 const AnecdoteForm = () => {
 
+  const queryClient = useQueryClient()
   const newAnecdoteMutation = useMutation(createAnecdote, {
     onSuccess: (newAnecdote) => {
       const anecdotes = queryClient.getQueryData('anecdotes')
       queryClient.setQueryData('anecdotes', anecdotes.concat(newAnecdote))
     }
   })
-  const queryClient = useQueryClient()
+
 
   const onCreate = async (event) => {
     event.preventDefault()
