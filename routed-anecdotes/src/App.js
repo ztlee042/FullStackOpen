@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
+import SingleAnecdote from './SingleAnecdote'
 
 const Menu = () => {
   const padding = {
@@ -18,9 +19,13 @@ const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
     <ul>
-      {anecdotes.map(anecdote => <li key={anecdote.id} >{anecdote.content}</li>)}
+      {anecdotes.map(anecdote =>
+        <li key={anecdote.id}>
+          <Link to={`anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+        </li>
+      )}
     </ul>
-  </div>
+  </div >
 )
 
 const About = () => (
@@ -133,6 +138,8 @@ const App = () => {
         <Route path="/create" element={<CreateNew addNew={addNew} />}>
         </Route>
         <Route path="/about" element={<About />}>
+        </Route>
+        <Route path="/anecdotes/:id" element={<SingleAnecdote anecdotes={anecdotes} />}>
         </Route>
       </Routes>
       <Footer />
