@@ -99,14 +99,37 @@ let books = [
 
 const typeDefs = `
   type Query {
-    dummy: Int
+    bookCount: Int!,
+    authorCount: Int!
+  }
+  
+  type Author {
+    name: String!
+  }
+  
+  type Book {
+    title: String!,
+    published: Int!,
+    author: Author!,
+    genres: [String],
   }
 `
 
 const resolvers = {
   Query: {
-    dummy: () => 0
-  }
+    bookCount: () => books.length,
+    authorCount: () => {
+      const authors = new Set(books.map(book => book.author));
+      return authors.size;
+    }
+  },
+  Book: {
+    author: (root) => {
+      return {
+        name: root.name,
+      }
+    }
+  },
 }
 
 const server = new ApolloServer({
